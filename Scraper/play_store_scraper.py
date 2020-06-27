@@ -48,7 +48,7 @@ for i in links:
     driver.get(i)
     time.sleep(0.5)
     
-    print('{}\r'.format(c), end = " ")
+    print('{}\r '.format(c), end = "")
     c = c + 1
     
     try:
@@ -67,24 +67,75 @@ for i in links:
         genre = driver.find_element_by_class_name('qQKdcc').text
     except:
         genre = 'Not Specified'
-    try:
-        Details= driver.find_elements_by_class_name('htlgb')
-        detail_text = []
-        for j in Details:
-            detail_text.append(j.text)
     
-        Details = []
-        for j in range(len(detail_text)//2):
-            Details.append(detail_text[2*j])
+    details_topics = driver.find_elements_by_class_name('BgcNfc')
+    details_values = driver.find_elements_by_class_name('htlgb')
+    
+    detail_dict = {}
+    for i in range(len(details_topics)):
+        detail_dict[details_topics[i].text] = details_values[2*i].text
+    
+    try:
+        last_update = detail_dict['Updated']
     except:
-        Details = 'No Details'
-    entry = {'App Name':App_Name, 'Details':Details, 'Genre':genre, 
+        last_update = 'No Update'
+        
+    try:
+        size = detail_dict['Size']
+    except:
+        size = -1
+    
+    try:
+        Installs = detail_dict['Installs']
+    except:
+        Installs = -1
+    
+    try:
+        version = detail_dict['Current Version']
+    except:
+        version = 'Not Given'
+    
+    try:
+        android = detail_dict['Requires Android']
+    except:
+        android = 'Any version'
+    
+    try:
+        Age = detail_dict['Content Rating']
+    except:
+        Age = 'Any Rating'
+    
+    try:
+        Elements = detail_dict['Interactive Elements']
+    except:
+        Elements = 'No Interactive Elements'
+    
+    try:
+        Purchases = detail_dict['In-app Products']
+    except:
+        Purchases = 'Completely free'
+    
+    try:
+        Offered_by = detail_dict['Offered By']
+    except:
+        Offered_by = 'Not given'
+        
+    try:
+        developer = detail_dict['Developer']
+    except:
+        developer = 'Not Specified'
+        
+    entry = {'App Name':App_Name, 'Last Update':last_update, 'Size':size, 'Genre':genre, 
+             'Number of Installations':Installs, 'Version':version,
+             'Required Android Version':android, 'Minimum Age':Age,
+             'Interactive Elements':Elements, 'In-app Purchases': Purchases,
+             'Offered By':Offered_by, 'Developer':developer,
              'Rating':rating, 'Number of Reviews': Number_reviews}
     
     entry = pd.Series(entry)
     app_data = app_data.append(entry, ignore_index = True)
     
-    time.sleep(2)
+    time.sleep(1.5)
     
 app_data.to_csv('play_store_data.csv', index = False)
 
