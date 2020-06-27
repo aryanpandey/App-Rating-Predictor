@@ -9,3 +9,5 @@ For getting the data from the Google Play Store this project uses a Selenium bas
 The data columns which it grabs for each app are : Name, Genre, Last Update, Age Requirement, Android Version Requirement, Number of installations, Current Version, Size, Interactive elements, Company Owned by, The Name of the Developer, Number of Reviews and the Overall Rating of the app. 
 
 Link for the Python Web Scraper - [Web Scraper](Scraper/play_store_scraper.py) 
+
+Currently Working on: Cleaning the Data and getting it ready for EDA.
