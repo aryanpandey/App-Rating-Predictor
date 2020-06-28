@@ -10,12 +10,14 @@ The data columns which it grabs for each app are : Name, Genre, Last Update, Age
 The links for the script for the scraper and the scraped dataset can be found below:
 
 Link for the Python Web Scraper - [Web Scraper](Scraper/play_store_scraper.py) 
+
 Link for the dataset obtained after Web Scraping - [Data from Web Scraper](Data-Cleaning/play_store_data.csv)
 
 ## Cleaning the Data
 Many of the columns in the data which has been scraped is not in the ideal form for performing some Exploratory Data Analysis. For example, the In-app Purchases feature has textual data like '$5 - $25 per item'. This form of data cannote be understoof by a machine and we need to get it to a format where it will understand what is going on. For this purpose Data Cleaning is done. The script to clean the data for this dataset and the cleaned dataset can be found in the link below:
 
 Link for the Data Cleaner in Python - [Data Cleaner in Python](Data-Cleaning/cleaner.py)
+
 Link to the Cleaned Dataset - [Cleaned Data](Cleaned_data.csv)
 
 Currently Working on: Performing some Exploratory Data Analysis for the data.
