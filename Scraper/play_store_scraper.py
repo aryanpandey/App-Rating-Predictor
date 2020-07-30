@@ -2,14 +2,7 @@
 """
 Spyder Editor
 
-This is a temporary script file.
-
-['NEW_FREE','NEW_PAID', 'TOP_FREE', 'TOP_PAID',
-            'TOP_GROSSING', 'TRENDING']
-['ANDROID_WEAR', 'ART_AND_DESIGN']
-
-,'c','d','e','f','g','h','i','j','k','l','m','n','o','p','q','r',
-'s','t','u','v','w','x','y','z'
+This is a script file for scraping the app data on the Google Play Store.
 """
 
 from selenium import webdriver
