@@ -114,3 +114,7 @@ print(mean_absolute_error(y_test, ((1/mean_absolute_error(y_test, xgb.best_estim
                           (1/mean_absolute_error(y_test, xgb.best_estimator_.predict(X_Test)) + 
                            1/mean_absolute_error(y_test, cat.best_estimator_.predict(X_Test)) + 
                            1/mean_absolute_error(y_test, lgb.best_estimator_.predict(X_Test)))))
+
+import pickle
+model = {'lightgbm':lgb.best_estimator_}
+pickle.dump(model, open('model_file' + ".p", "wb")) 
