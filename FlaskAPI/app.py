@@ -2,10 +2,10 @@
 """
 Script for launching the app
 """
-import flask
-from flask import Flask, jsonify, request
+from flask import Flask, request
 import json
 import pickle
+import numpy as np
 
 app = Flask(__name__)
 
@@ -16,14 +16,19 @@ def load_models():
         model = model['lightgbm']
     return model
 
-@app.route('/predict') 
+@app.route('/predict', methods = ['GET','POST']) 
 def predict():
-    request_json = request.get_json()
-    x = float(request_json['input'])
-    model = load_models()
-    prediction = model.predict(x)[0]
-    response = json.dumps({'Prediction': prediction})
-    return response, 200
+    if request.method == 'POST':
+        request_json = request.json
+        x = request_json['input']
+        x = np.array(x).reshape(1,-1)
+        model = load_models()
+        prediction = model.predict(x)[0]
+        #print(prediction)
+        response = json.dumps({'Rating': prediction})
+        return response, 200
+    print('You need to make a post request for this to work!!!')
+    return None
 
 if __name__ == '__main__':
     application.run(debug = True)

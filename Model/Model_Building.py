@@ -15,7 +15,6 @@ data['Genre'] = enc.fit_transform(data['Genre'])
 data['Version'] = enc.fit_transform(data['Version'])
 data['Minimum Android Version'] = enc.fit_transform(data['Minimum Android Version'])
 
-
 #Train Test Split
 from sklearn.model_selection import train_test_split
 X = data.drop(['Rating'], axis = 1)
@@ -23,6 +22,7 @@ y = data['Rating']
 X_Train, X_Test, y_train, y_test = train_test_split(X,y, test_size = 0.15, random_state = 0)
 X_Train, X_CV, y_train, y_CV = train_test_split(X_Train,y_train, test_size = 0.15, random_state = 0)
 
+X.to_csv('transformed_data.csv', index = False)
 
 #Linear Regression
 from sklearn.linear_model import LinearRegression
