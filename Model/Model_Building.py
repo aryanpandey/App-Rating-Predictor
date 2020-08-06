@@ -103,18 +103,6 @@ print(mean_absolute_error(y_test, xgb.best_estimator_.predict(X_Test)))
 print(mean_absolute_error(y_test, lgb.best_estimator_.predict(X_Test)))
 print(mean_absolute_error(y_test, cat.best_estimator_.predict(X_Test)))
 
-#Ensembles
-print(mean_absolute_error(y_test, (xgb.best_estimator_.predict(X_Test) + cat.best_estimator_.predict(X_Test) + lgb.best_estimator_.predict(X_Test))/3))
-
-#Ensembling based on their errors
-#More weightage given to the model with least error whrer the weight is 1/error
-print(mean_absolute_error(y_test, ((1/mean_absolute_error(y_test, xgb.best_estimator_.predict(X_Test)))*xgb.best_estimator_.predict(X_Test) + 
-                                   (1/mean_absolute_error(y_test, cat.best_estimator_.predict(X_Test)))*cat.best_estimator_.predict(X_Test) + 
-                                   (1/mean_absolute_error(y_test, lgb.best_estimator_.predict(X_Test)))*lgb.best_estimator_.predict(X_Test))/
-                          (1/mean_absolute_error(y_test, xgb.best_estimator_.predict(X_Test)) + 
-                           1/mean_absolute_error(y_test, cat.best_estimator_.predict(X_Test)) + 
-                           1/mean_absolute_error(y_test, lgb.best_estimator_.predict(X_Test)))))
-
 import pickle
 model = {'lightgbm':lgb.best_estimator_}
 pickle.dump(model, open('model_file' + ".p", "wb")) 
