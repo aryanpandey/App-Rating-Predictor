@@ -33,6 +33,8 @@ Link to the Cleaned Dataset - [Cleaned Data](Cleaned_data.csv)
 ## EDA
 Exploratory Data Analysis for this dataset didn't yield a large number of insights as such. One thing which I could see was that almost all columns had a very low correlation with the rating except for a few.
 
+Link for the EDA Notebook: [EDA Notebook](EDA/EDA.ipynb)
+
 Following is the distribution of the Genre of Apps in the 0-2, 2-3, 3-4 and 4-5 rating intervals:
 
 #### 0-2
