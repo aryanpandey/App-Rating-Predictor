@@ -1,7 +1,7 @@
 # App-Rating-Predictor
 
 ## Introduction
-This Project uses data from the apps on the Google Play Store to predict the overall rating a particular app will get from its users. There are a variety of features which will be used by the model. There are approximately 850 training apps and 150 testing apps. The LightGBM model which in the code gives an error of 6.2-6.6% which is the least possible from the models that were trained on.
+This Project uses data from the apps on the Google Play Store to predict the overall rating a particular app will get from its users. There are a variety of features which will be used by the model. There are approximately 850 training apps and 150 testing apps. The LightGBM model which is given in the code gives an error of 6.2-6.6% which is the least possible from the models that were trained on.
 
 ## Usage
 This project has an API which has been made using Flask. To work with this API, first run [this](FlaskAPI/wsgi.py) Web Server Gateway Interface Script on your terminal as shown below
