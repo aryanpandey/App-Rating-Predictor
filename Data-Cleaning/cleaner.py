@@ -9,6 +9,9 @@ import re
 
 data = pd.read_csv('play_store_data.csv')
 
+#Remove entries with duplicate names
+data = data.drop_duplicates(subset = 'App Name')
+
 # Remove the word total from reviews
 data['Number of Reviews'] = data['Number of Reviews'].apply(lambda x: int(x.split(' ')[0].replace(',','')))
 
@@ -110,4 +113,4 @@ def element_score(text):
 data['Interactive Element Score'] = data['Interactive Elements'].apply(element_score)
 
 # Uploading the Cleaned data
-data.to_csv('Cleaned_data.csv', index = False)
+#data.to_csv('Cleaned_data.csv', index = False)

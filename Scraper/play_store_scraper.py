@@ -13,24 +13,44 @@ import time
 
 url = 'https://play.google.com'
 
-driver = webdriver.Chrome(executable_path = r'C:/Projects/App-Downloads-Predictor/Scraper/chromedriver.exe')
+driver = webdriver.Chrome(executable_path = '/home/aryan/Documents/Projects/App-Rating-Predictor/Scraper/chromedriver.exe')
 
 driver.implicitly_wait(2)
 driver.maximize_window()
 driver.get(url +'/store/apps')
-letters = ['a','b','c','d','e','f','g','h','i','j','k','l','m','n','o','p','q','r',
-           's','t','u','v','w','x','y','z']
+letters = ['a','b','c','d','e','f','g','h','i','j','k','l','m','n','o','p','q','r','s','t','u','v','w','x','y','z','1','2','3','4','5','6','7','8','9','0']
 hrefs =[]
+SCROLL_PAUSE_TIME = 1
 for i in letters:
     driver.find_element_by_name('q').send_keys(Keys.BACKSPACE)
     time.sleep(0.5)
     driver.find_element_by_name('q').send_keys(i)
     time.sleep(1)
     driver.find_element_by_class_name('gbqfb').click()
-    time.sleep(2.5)
-    app = driver.find_elements_by_class_name('poRVub')
-    for j in range(len(app)):
-        hrefs.append(app[j].get_attribute('href'))
+    time.sleep(1.5)
+    # Get scroll height
+    last_height = driver.execute_script("return document.body.scrollHeight")
+    
+    while True:
+        try:
+            app = driver.find_elements_by_class_name('poRVub')
+            for j in range(len(app)):
+                hrefs.append(app[j].get_attribute('href'))
+        except:
+            pass
+        # Scroll down to bottom
+        driver.execute_script("window.scrollTo(0, document.body.scrollHeight);")
+    
+        # Wait to load page
+        time.sleep(SCROLL_PAUSE_TIME)
+    
+        # Calculate new scroll height and compare with last scroll height
+        new_height = driver.execute_script("return document.body.scrollHeight")
+        if new_height == last_height:
+            break
+        last_height = new_height
+            
+        
 
 app_data = pd.DataFrame()
 print(len(np.unique(np.asarray(hrefs))))
@@ -41,7 +61,7 @@ for i in links:
     driver.get(i)
     time.sleep(0.5)
     
-    print('{}\r '.format(c), end = "")
+    print('{} \n '.format(c))
     c = c + 1
     
     try:
