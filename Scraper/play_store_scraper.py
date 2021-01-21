@@ -9,6 +9,7 @@ from selenium import webdriver
 from selenium.webdriver.common.keys import Keys
 import pandas as pd
 import numpy as np
+from google_play_scraper import app
 import time
 
 url = 'https://play.google.com'
@@ -33,9 +34,9 @@ for i in letters:
     
     while True:
         try:
-            app = driver.find_elements_by_class_name('poRVub')
-            for j in range(len(app)):
-                hrefs.append(app[j].get_attribute('href'))
+            apps = driver.find_elements_by_class_name('poRVub')
+            for j in range(len(apps)):
+                hrefs.append(apps[j].get_attribute('href'))
         except:
             pass
         # Scroll down to bottom
@@ -58,97 +59,14 @@ print('test')
 c = 0
 links = np.unique(np.asarray(hrefs))
 for i in links:
-    driver.get(i)
-    time.sleep(0.5)
-    
-    print('{} \n '.format(c))
+    print('{} \n '.format(c+1))
     c = c + 1
-    
-    try:
-        rating = driver.find_element_by_class_name('BHMmbe').text
-    except:
-        rating = -1
-    try:
-        Number_reviews = driver.find_element_by_class_name('EymY4b').text
-    except:
-        Number_reviews = 0
-    try:
-        App_Name = driver.find_element_by_class_name('AHFaub').text
-    except:
-        App_Name = 'No Name'
-    try:
-        genre = driver.find_element_by_class_name('qQKdcc').text
-    except:
-        genre = 'Not Specified'
-    
-    details_topics = driver.find_elements_by_class_name('BgcNfc')
-    details_values = driver.find_elements_by_class_name('htlgb')
-    
-    detail_dict = {}
-    for i in range(len(details_topics)):
-        detail_dict[details_topics[i].text] = details_values[2*i].text
-    
-    try:
-        last_update = detail_dict['Updated']
-    except:
-        last_update = 'No Update'
-        
-    try:
-        size = detail_dict['Size']
-    except:
-        size = -1
-    
-    try:
-        Installs = detail_dict['Installs']
-    except:
-        Installs = -1
-    
-    try:
-        version = detail_dict['Current Version']
-    except:
-        version = 'Not Given'
-    
-    try:
-        android = detail_dict['Requires Android']
-    except:
-        android = 'Any version'
-    
-    try:
-        Age = detail_dict['Content Rating']
-    except:
-        Age = 'Any Rating'
-    
-    try:
-        Elements = detail_dict['Interactive Elements']
-    except:
-        Elements = 'No Interactive Elements'
-    
-    try:
-        Purchases = detail_dict['In-app Products']
-    except:
-        Purchases = 'Completely free'
-    
-    try:
-        Offered_by = detail_dict['Offered By']
-    except:
-        Offered_by = 'Not given'
-        
-    try:
-        developer = detail_dict['Developer']
-    except:
-        developer = 'Not Specified'
-        
-    entry = {'App Name':App_Name, 'Last Update':last_update, 'Size':size, 'Genre':genre, 
-             'Number of Installations':Installs, 'Version':version,
-             'Required Android Version':android, 'Minimum Age':Age,
-             'Interactive Elements':Elements, 'In-app Purchases': Purchases,
-             'Offered By':Offered_by, 'Developer':developer,
-             'Rating':rating, 'Number of Reviews': Number_reviews}
-    
+    id = i.split('=')[-1]
+    print(id)
+    entry = app(id, lang = 'en', country = 'in')
     entry = pd.Series(entry)
     app_data = app_data.append(entry, ignore_index = True)
     
-    time.sleep(1.5)
     
 app_data.to_csv('play_store_data.csv', index = False)
 
