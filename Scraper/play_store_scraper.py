@@ -75,5 +75,5 @@ for i in links:
     except:
         print("Could not retrieve data")    
     
-app_data.to_csv('play_store_data.csv', index = False)
+app_data.to_csv('Data/play_store_data.csv', index = False)
 
