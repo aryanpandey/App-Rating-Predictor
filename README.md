@@ -1,6 +1,7 @@
 # App-Rating-Predictor
 
-### Project in Development
+### Project in Development 
+Switch over to the [Dev Branch](https://github.com/aryanpandey/App-Rating-Predictor/tree/Dev) to follow the latest changes!!
 
 ## Introduction
 This Project uses data from the apps on the Google Play Store to predict the overall rating a particular app will get from its users. There are a variety of features which will be used by the model. There are approximately 850 training apps and 150 testing apps. The LightGBM model which is given in the code gives an error of 6.2-6.6% which is the least possible from the models that were trained on.
