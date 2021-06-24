@@ -2,107 +2,167 @@
 """
 This Script is for building a model for the App Rating Predictor Project.
 """
+import numpy as np
 import pandas as pd
+import gensim
+import logging
+from gensim.models import Word2Vec
+import pickle
+import nltk
+from sklearn.preprocessing import LabelEncoder
+from sklearn.model_selection import train_test_split, StratifiedKFold
+from sklearn.metrics import f1_score, mean_squared_error
+from sklearn.decomposition import PCA
+from imblearn.over_sampling import SMOTE
+#nltk.download('punkt')
 
-data = pd.read_csv('Data_for_Model.csv')
+data = pd.read_csv('../Data/play_store_data.csv')
+drop_list = ['analysis_split', 'description', 'developerAddress', 'histogram', 'inAppProductPrice', 'installs',
+             'recentChanges', 'summary', 'Years_from_release']
+
+#Get minimum Age Rating
+def get_min_age(entry):
+    if entry == entry:
+        entry = int(entry.split(' ')[-1][:-1])
+    else:
+        entry = 0
+        
+    return entry
+
+data['min_age_rating'] = data['contentRating'].apply(get_min_age)
+drop_list.append('contentRating')
+
+#Fill Missing Values
+text_columns = ['currency', 'developer', 'genre', 'contentRatingDescription', 'title']
+num_columns = ['Day', 'Month', 'Year', 'androidVersion', 'containsAds', 'editorsChoice',
+               'free', 'minInstalls', 'offersIAP', 'originalPrice', 'price', 'ratings',
+               'reviews', 'size', 'product_price', 'min_age_rating']
+
+data[text_columns] = data[text_columns].fillna('Missing')
+data[num_columns] = data[num_columns].fillna(-1)
+
+data = data[data['score'].notna()]
+
+#'''Get Word Vector Representations for all Textual Columns
+wv = gensim.models.KeyedVectors.load_word2vec_format('../Data/GoogleNews-vectors-negative300.bin', binary=True)
+wv.init_sims(replace=True)
+def word_averaging(wv, words, counter):
+    all_words, mean = set(), []
+    
+    for word in words:
+        if isinstance(word, np.ndarray):
+            mean.append(word)
+        elif word in wv.vocab:
+            mean.append(wv.syn0norm[wv.vocab[word].index])
+    
+    if not mean:
+        counter += 1
+        return np.zeros(wv.vector_size,)
+    
+    mean = gensim.matutils.unitvec(np.array(mean).mean(axis=0).astype(np.float32))
+    return mean
+
+def word_averaging_list(wv, text_list, counter=0):
+    return np.vstack([word_averaging(wv, post, counter) for post in text_list]), counter
+
+def w2v_tokenize_text(text):
+    tokens = []
+    try:
+        for sent in nltk.sent_tokenize(text, language ='english'):
+            for word in nltk.word_tokenize(sent, language = 'english'):
+                if len(word) < 2:
+                    continue
+                tokens.append(word)
+    except:
+        tokens.append('Other')
+    return tokens
+
+def pca(w2v, components=5, var=None):
+    pca = PCA(n_components=components)
+    pca.fit(w2v)
+    a = pd.DataFrame(pca.transform(w2v), columns=['pca_{}_{}'.format(i,var) for i in range(0, components)])
+    data[a.columns] = a
+    
+title_tokenized = data['title'].apply(lambda x:" ".join(i for i in x)).astype(str).apply(lambda r:w2v_tokenize_text(r)).values
+title_w2v, counter = word_averaging_list(wv, title_tokenized)
+print("Could not compute similarity for ", str(counter), " items")
+pca(title_w2v, components=5, var='Title')
+
+contentRatingDescription_tokenized = data['title'].apply(lambda x:" ".join(i for i in x)).astype(str).apply(lambda r:w2v_tokenize_text(r)).values
+contentRatingDescription_w2v, counter = word_averaging_list(wv, contentRatingDescription_tokenized)
+print("Could not compute similarity for ", str(counter), " items")
+pca(title_w2v, components=5, var='contentRatingDescription')
+
+data.drop(['title', 'contentRatingDescription'], axis = 1, inplace = True)
+#'''
+#Drop a few Columns
+data.drop(drop_list, axis = 1, inplace = True)
+
 
 #Label/Target Encode categorical variables
-from sklearn.preprocessing import LabelEncoder
-enc = LabelEncoder()
-enc1 = LabelEncoder()
-enc2 = LabelEncoder()
-data['Genre'] = enc.fit_transform(data['Genre'])
-data['Version'] = enc.fit_transform(data['Version'])
-data['Minimum Android Version'] = enc.fit_transform(data['Minimum Android Version'])
+def label_encode(df, var, minority_limit):
+    minor_groups = df[var].value_counts()[df[var].value_counts()<minority_limit].index
+    
+    replace_list = []
+    for i in range(0, len(minor_groups)):
+        replace_list.append('other')
+        
+    df[var] = df[var].replace(minor_groups, replace_list)
+    
+    le = LabelEncoder()
+    df[var] = le.fit_transform(df[var])
+    
+    with open('../Model_Data/le_'+var+'.pkl', 'wb') as f:
+        pickle.dump(le, f)
+    
+minority_limits = {'currency':3, 'developer':1, 'genre':120}
 
-#Train Test Split
-from sklearn.model_selection import train_test_split
-X = data.drop(['Rating'], axis = 1)
-y = data['Rating']
-X_Train, X_Test, y_train, y_test = train_test_split(X,y, test_size = 0.15, random_state = 0)
-X_Train, X_CV, y_train, y_CV = train_test_split(X_Train,y_train, test_size = 0.15, random_state = 0)
+for i in text_columns[:-2]:
+    label_encode(data, i, minority_limits[i])
 
-X.to_csv('transformed_data.csv', index = False)
-
-#Linear Regression
-from sklearn.linear_model import LinearRegression
-from sklearn.metrics import mean_absolute_error
-lm = LinearRegression()
-lm.fit(X_Train, y_train)
-print(mean_absolute_error(y_CV, lm.predict(X_CV)))
-
-
-#SVR
-from sklearn.svm import SVR
-svr = SVR()
-svr.fit(X_Train, y_train)
-print(mean_absolute_error(y_CV, svr.predict(X_CV)))
-
-
-#Decision Tree Regressor
-from sklearn.tree import DecisionTreeRegressor
-tree = DecisionTreeRegressor()
-tree.fit(X_Train, y_train)
-print(mean_absolute_error(y_CV, tree.predict(X_CV)))
-
-
-#Random Forest
-from sklearn.ensemble import RandomForestRegressor
-rf = RandomForestRegressor()
-rf.fit(X_Train, y_train)
-print(mean_absolute_error(y_CV, rf.predict(X_CV)))
-
-
-#Hyperparameter optimization using GridsearchCV for Boosting models
-nums = []
-for i in range(20):
-    nums.append(0.01 + 0.05*i)
-from sklearn.model_selection import RandomizedSearchCV
-params1 = {'random_state':range(1,15), 'max_leaves':(8,16,24, 32), 'max_depth': range(1,15), 
-          'learning_rate': nums, 'n_estimators': range(10,500,10), 'n_jobs': (4,6),
-          'reg_alpha': nums, 'reg_lambda':nums}
-
-params2 = {'random_state':range(1,15), 'num_leaves':(8,16,24, 32), 'max_depth': range(1,15), 
-          'learning_rate': nums, 'n_estimators': range(10,500,10), 'n_jobs': (4,6),
-          'reg_alpha': nums, 'reg_lambda':nums}
-
-params3 = {'random_state':range(1,15), 'num_leaves':(8,16,24, 32), 'max_depth': range(1,15), 
-          'learning_rate': nums, 'n_estimators': range(10,1000,10),
-          'reg_lambda':nums}
-
-
+#'''
+def bin_score(entry):
+    if entry>4:
+        return 3
+    elif entry>3:
+        return 2
+    elif entry>2:
+        return 1
+    else:
+        return 0
+    
+data['score'] = data['score'].apply(bin_score)
+#'''
 #XGBoost
-from xgboost import XGBRegressor
-clf1 = XGBRegressor()
-xgb = RandomizedSearchCV(clf1, params1)
-xgb.fit(X_Train, y_train, early_stopping_rounds = 5, eval_set = [(X_CV,y_CV)], verbose = False)
-print(mean_absolute_error(y_CV, xgb.predict(X_CV)))
+data.dropna(inplace=True)
+X = data.drop(['score'], axis = 1)
+Y = data['score']
 
 
-#LightGBM
-from lightgbm import LGBMRegressor
-clf2 = LGBMRegressor()
-lgb = RandomizedSearchCV(clf2, params2)
-lgb.fit(X_Train, y_train, early_stopping_rounds = 5, eval_set = [(X_CV,y_CV)], verbose = False)
-print(mean_absolute_error(y_CV, lgb.predict(X_CV)))
+kfold = StratifiedKFold(n_splits = 5, shuffle = True, random_state = 42)
 
+splits = kfold.split(X, Y)
+macro_scores = []
+weighted_scores = []
 
-#Catboost
-from catboost import CatBoostRegressor
-clf3 = CatBoostRegressor()
-cat = RandomizedSearchCV(clf3, params3)
-cat.fit(X_Train, y_train, early_stopping_rounds = 5, eval_set = [(X_CV,y_CV)], verbose = False)
-print(mean_absolute_error(y_CV, cat.predict(X_CV)))
+from xgboost import XGBClassifier, XGBRegressor
 
-
-#Model Evaluation
-print(mean_absolute_error(y_test, lm.predict(X_Test)))
-print(mean_absolute_error(y_test, svr.predict(X_Test)))
-print(mean_absolute_error(y_test, tree.predict(X_Test)))
-print(mean_absolute_error(y_test, xgb.best_estimator_.predict(X_Test)))
-print(mean_absolute_error(y_test, lgb.best_estimator_.predict(X_Test)))
-print(mean_absolute_error(y_test, cat.best_estimator_.predict(X_Test)))
-
-import pickle
-model = {'lightgbm':lgb.best_estimator_}
-pickle.dump(model, open('model_file' + ".p", "wb")) 
+for Train, Test in splits:
+    X_Train, X_Test, Y_Train, Y_Test = X.iloc[Train], X.iloc[Test], Y.iloc[Train], Y.iloc[Test]
+    
+    sm = SMOTE(random_state = 42, n_jobs = -1)
+    X_Train, Y_Train = sm.fit_resample(X_Train, Y_Train)
+    
+    xgb = XGBClassifier(n_estimators = 2000, n_jobs = -1, learning_rate = 0.1, reg_lambda = 0.1, objective = 'multiclassova')
+    xgb.fit(X_Train, Y_Train, early_stopping_rounds = 100, eval_set = [(X_Train, Y_Train), (X_Test, Y_Test)], eval_metric = 'mlogloss',  verbose = False)
+    
+    pred = xgb.predict(X_Test)
+    
+    macro_scores.append(f1_score(Y_Test, pred, average = 'macro'))
+    weighted_scores.append(f1_score(Y_Test, pred, average = 'weighted'))
+    
+#print("RMSE:", mean_squared_error(Y_CV, pred, squared = False))
+#'''
+print("Weighted F1:", sum(weighted_scores)/len(weighted_scores))
+print("Macro F1:", sum(macro_scores)/len(macro_scores))
+#'''
