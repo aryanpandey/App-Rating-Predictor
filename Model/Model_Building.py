@@ -18,7 +18,8 @@ from imblearn.over_sampling import SMOTE
 
 data = pd.read_csv('../Data/play_store_data.csv')
 drop_list = ['analysis_split', 'description', 'developerAddress', 'histogram', 'inAppProductPrice', 'installs',
-             'recentChanges', 'summary', 'Years_from_release']
+             'recentChanges', 'summary','editorsChoice', 'free', 'minInstalls',
+             'price', 'ratings', 'reviews', 'contentRatingDescription', 'title']
 
 #Get minimum Age Rating
 def get_min_age(entry):
@@ -33,17 +34,16 @@ data['min_age_rating'] = data['contentRating'].apply(get_min_age)
 drop_list.append('contentRating')
 
 #Fill Missing Values
-text_columns = ['currency', 'developer', 'genre', 'contentRatingDescription', 'title']
-num_columns = ['Day', 'Month', 'Year', 'androidVersion', 'containsAds', 'editorsChoice',
-               'free', 'minInstalls', 'offersIAP', 'originalPrice', 'price', 'ratings',
-               'reviews', 'size', 'product_price', 'min_age_rating']
+text_columns = ['currency', 'developer', 'genre', 'title']
+num_columns = ['Day', 'Month', 'Year', 'androidVersion', 'containsAds', 'Years_from_release',
+               'minInstalls', 'offersIAP', 'originalPrice', 'size', 'product_price', 'min_age_rating']
 
 data[text_columns] = data[text_columns].fillna('Missing')
 data[num_columns] = data[num_columns].fillna(-1)
 
 data = data[data['score'].notna()]
 
-#'''Get Word Vector Representations for all Textual Columns
+'''Get Word Vector Representations for all Textual Columns
 wv = gensim.models.KeyedVectors.load_word2vec_format('../Data/GoogleNews-vectors-negative300.bin', binary=True)
 wv.init_sims(replace=True)
 def word_averaging(wv, words, counter):
@@ -88,12 +88,7 @@ title_w2v, counter = word_averaging_list(wv, title_tokenized)
 print("Could not compute similarity for ", str(counter), " items")
 pca(title_w2v, components=5, var='Title')
 
-contentRatingDescription_tokenized = data['title'].apply(lambda x:" ".join(i for i in x)).astype(str).apply(lambda r:w2v_tokenize_text(r)).values
-contentRatingDescription_w2v, counter = word_averaging_list(wv, contentRatingDescription_tokenized)
-print("Could not compute similarity for ", str(counter), " items")
-pca(title_w2v, components=5, var='contentRatingDescription')
-
-data.drop(['title', 'contentRatingDescription'], axis = 1, inplace = True)
+data.drop(['title'], axis = 1, inplace = True)
 #'''
 #Drop a few Columns
 data.drop(drop_list, axis = 1, inplace = True)
@@ -117,7 +112,7 @@ def label_encode(df, var, minority_limit):
     
 minority_limits = {'currency':3, 'developer':1, 'genre':120}
 
-for i in text_columns[:-2]:
+for i in text_columns[:-1]:
     label_encode(data, i, minority_limits[i])
 
 #'''
@@ -137,9 +132,9 @@ data['score'] = data['score'].apply(bin_score)
 data.dropna(inplace=True)
 X = data.drop(['score'], axis = 1)
 Y = data['score']
+print(X.columns)
 
-
-kfold = StratifiedKFold(n_splits = 5, shuffle = True, random_state = 42)
+kfold = StratifiedKFold(n_splits = 3, shuffle = True, random_state = 42)
 
 splits = kfold.split(X, Y)
 macro_scores = []
