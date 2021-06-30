@@ -10,8 +10,10 @@ import dash
 from flask import Flask
 import pickle
 
-server = Flask(__name__)
-app=dash.Dash(__name__,external_stylesheets = [dbc.themes.UNITED], suppress_callback_exceptions=True, server=server)
+flask_server = Flask(__name__)
+app=dash.Dash(__name__,external_stylesheets = [dbc.themes.UNITED], suppress_callback_exceptions=True, server=flask_server)
+
+server = app.server
 
 data = pd.read_csv('../Data/play_store_data.csv')
 
