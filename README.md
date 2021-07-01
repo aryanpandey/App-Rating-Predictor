@@ -3,7 +3,7 @@
 Version 2 of this project is out!!
 Will update the Readme soon
 
-Meanwhile feel free to play around with the [project](https://app-rating-predictor-1506.herokuapp.com/)
+Meanwhile feel free to play around with the [project](https://app-rating-predictor-1506.herokuapp.com/) . (Give some time for the Heroku Dyno to start. It stops if there is any inactivity for 30 mins. It should start within 60 seconds)
 
 ## Introduction
 This Project uses data from the apps on the Google Play Store to predict the overall rating a particular app will get from its users. There are a variety of features which will be used by the model. There are approximately 850 training apps and 150 testing apps. The LightGBM model which is given in the code gives an error of 6.2-6.6% which is the least possible from the models that were trained on.
