@@ -65,10 +65,16 @@ for i in text_columns[:-1]:
 #'''
 def bin_score(entry):
     if entry>4.75:
+        return 8
+    elif entry>4.6:
+        return 7
+    elif entry>4.4:
+        return 6
+    elif entry>4.2:
         return 5
-    elif entry>4.5:
-        return 4
     elif entry>4:
+        return 4
+    elif entry>3.75:
         return 3
     elif entry>3.5:
         return 2
