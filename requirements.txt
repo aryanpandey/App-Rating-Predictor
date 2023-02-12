@@ -12,7 +12,7 @@ gunicorn==20.1.0
 imbalanced-learn==0.7.0
 iopath==0.1.8
 ipykernel==5.4.3
-ipython==7.31.1
+ipython==8.10.0
 ipython-genutils==0.2.0
 ipywidgets==7.6.3
 matplotlib==3.3.4
